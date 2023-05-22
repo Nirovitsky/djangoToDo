@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "todo"
+version = "0.1.0"
+description = ""
+authors = ["Nirovitsky <toymammedov01@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^4.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
