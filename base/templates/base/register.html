@@ -1,4 +1,6 @@
+
 {% extends 'base/main.html' %}
+
 {% block content %}
 
 <div class="header-bar">
@@ -7,21 +9,31 @@
 
 <div class="card-body">
     <form action="" method="POST">
-    {% csrf_token %}
-        <label>{{form.username.label}}</label>
-        {{form.username}}
+        {% csrf_token %}
 
-        <label>{{form.password1.label}}</label>
-        {{form.password1}}
+        <label>{{ form.username.label }}</label>
+        {{ form.username }}
+        {% for error in form.username.errors %}
+            <div class="error">{{ error }}</div>
+        {% endfor %}
 
-        <label>{{form.password2.label}}</label>
-        {{form.password2}}
-    <input style="margin-top: 15px;" class="button" type="submit" value="Register">
-</form>
+        <label>{{ form.password1.label }}</label>
+        {{ form.password1 }}
+        {% for error in form.password1.errors %}
+            <div class="error">{{ error }}</div>
+        {% endfor %}
 
-<p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+        <label>{{ form.password2.label }}</label>
+        {{ form.password2 }}
+        {% for error in form.password2.errors %}
+            <div class="error">{{ error }}</div>
+        {% endfor %}
+
+        <input style="margin-top: 15px;" class="button" type="submit" value="Register">
+    </form>
+
+    <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
 </div>
 
+{% endblock %}
 
-
-{% endblock content %}
