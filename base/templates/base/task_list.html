@@ -26,6 +26,12 @@
     <a id="add-link" href="{% url 'task-create' %}">&#x2b;</a>
 </div>
 
+<div style="margin: 20px; margin-top: 0">
+    <a style="text-decoration: none; cursor: pointer; " href="{% url 'tasks' %}?order_by=asc">Ascending</a>
+    <a style="text-decoration: none; cursor: pointer; " href="{% url 'tasks' %}?order_by=desc">Descending</a>
+    <a style="text-decoration: none; cursor: pointer; " href="{% url 'tasks' %}?order_by=created">Created Date</a>
+</div>
+
 
 <div class="task-items-wrapper">
     {% for task in tasks %}

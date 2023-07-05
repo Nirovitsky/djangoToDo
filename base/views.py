@@ -8,6 +8,8 @@ from django.urls import reverse_lazy
 
 from django.contrib import messages
 
+from django.db.models import F
+
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm
@@ -72,6 +74,15 @@ class TaskList(LoginRequiredMixin, ListView):
             context['tasks'] = context['tasks'].filter(title__startswith=search_input)
 
         context['search_input'] = search_input
+
+        order_by = self.request.GET.get('order_by')
+        if order_by == 'asc':
+            context['tasks'] = context['tasks'].order_by('title')
+        elif order_by == 'desc':
+            context['tasks'] = context['tasks'].order_by('-title')
+        elif order_by == 'asc':
+            context['tasks'] = context['tasks'].order_by('created')
+
         return context
 
 class TaskDetail(LoginRequiredMixin, DetailView):
