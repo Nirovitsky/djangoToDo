@@ -109,3 +109,7 @@ class DeleteView(LoginRequiredMixin, DeleteView):
     context_object_name = 'task'
     success_url = reverse_lazy('tasks')
 
+# sdbhjfabasdjkfhn as aeruifg qawer
+# werafguib asjkvndupsgh a
+# h aiwefgh)
+# a whbeuiwerahflZNBCIH hqr]get_object_or_404( hqerygbasd;
