@@ -6,19 +6,14 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 from django.urls import reverse_lazy
 
-from django.contrib import messages
-
-from django.db.models import F
-
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 
 from django.shortcuts import get_object_or_404
-
+from django.views import View
 from .models import Task
-
 
 class CustomLoginView(LoginView):
     template_name = 'base/login.html'
@@ -36,22 +31,32 @@ class RegisterPage(FormView):
     success_url = reverse_lazy('tasks')
 
     def form_valid(self, form):
+        # Check if all fields are empty
+        if all(not form.cleaned_data[field] for field in form.fields):
+            form.add_error(None, "Fields cannot be empty.")
+            return self.form_invalid(form)
+
+        # Rest of your existing code
         username = form.cleaned_data['username']
         password1 = form.cleaned_data['password1']
         password2 = form.cleaned_data['password2']
 
         if User.objects.filter(username=username).exists():
-            messages.error(self.request, 'This username is already taken.')
-            return self.form_invalid(form)
+            form.add_error('username', 'This username is already taken.')
 
+        if len(password1) < 8:
+            form.add_error('password1', 'This password is too short. It must contain at least 8 characters.')
         if password1 != password2:
-            messages.error(self.request, 'Passwords do not match.')
+            form.add_error('password1', 'Passwords do not match.')
+            form.add_error('password2', 'Passwords do not match.')
+
+        if form.errors:
             return self.form_invalid(form)
 
         user = form.save()
         if user is not None:
             login(self.request, user)
-        return super(RegisterPage, self).form_valid(form)
+        return super().form_valid(form)
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -69,21 +74,37 @@ class TaskList(LoginRequiredMixin, ListView):
         context['tasks'] = context['tasks'].filter(user=self.request.user)
         context['count'] = context['tasks'].filter(complete=False).count()
 
+        sort_by = self.request.GET.get('sort_by', 'complete')
+        sort_order = self.request.GET.get('sort_order', 'asc')
+
+        next_sort_order = 'desc' if sort_order == 'asc' else 'asc'
+
+        context['sort_by'] = sort_by
+        context['sort_order'] = sort_order
+        context['next_sort_order'] = next_sort_order
+
         search_input = self.request.GET.get('search-area') or ''
         if search_input:
             context['tasks'] = context['tasks'].filter(title__startswith=search_input)
 
         context['search_input'] = search_input
 
-        order_by = self.request.GET.get('order_by')
-        if order_by == 'asc':
-            context['tasks'] = context['tasks'].order_by('title')
-        elif order_by == 'desc':
-            context['tasks'] = context['tasks'].order_by('-title')
-        elif order_by == 'asc':
-            context['tasks'] = context['tasks'].order_by('created')
-
         return context
+    def get_queryset(self):
+        sort_by = self.request.GET.get('sort_by', 'complete')
+        sort_order = self.request.GET.get('sort_order', 'asc')
+
+        queryset = super().get_queryset()
+
+        if sort_by == 'title':
+            queryset = queryset.order_by('title' if sort_order == 'asc' else '-title')
+        elif sort_by == 'created':
+            queryset = queryset.order_by('created' if sort_order == 'asc' else '-created')
+        else:
+            queryset = queryset.order_by('complete' if sort_order == 'asc' else '-complete')
+
+        return queryset
+
 
 class TaskDetail(LoginRequiredMixin, DetailView):
     model = Task
@@ -104,12 +125,21 @@ class TaskUpdate(LoginRequiredMixin, UpdateView):
     fields = ['title', 'description', 'complete']
     success_url = reverse_lazy('tasks')
 
+class TaskStatusUpdate(View):
+    def post(self, request, *args, **kwargs):
+        task_id = request.POST.get('task_id')
+        task = get_object_or_404(Task, id=task_id)
+        new_status = request.POST.get('status')
+
+        # Assuming 'status' values are either 'in-progress' or 'done'
+        if new_status in ('in-progress', 'done'):
+            task.complete = (new_status == 'done')
+            task.save()
+
+        return redirect('tasks')
+
 class DeleteView(LoginRequiredMixin, DeleteView):
     model = Task
     context_object_name = 'task'
     success_url = reverse_lazy('tasks')
 
-# sdbhjfabasdjkfhn as aeruifg qawer
-# werafguib asjkvndupsgh a
-# h aiwefgh)
-# a whbeuiwerahflZNBCIH hqr]get_object_or_404( hqerygbasd;

@@ -2,6 +2,62 @@
 {% block content %}
 
 
+<style>
+
+    .task-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .task-table th, .task-table td {
+        padding: 5px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+   .task-table th a{
+        text-decoration: none;
+   }
+    .task-table td a {
+        text-decoration: none;
+    }
+
+    .task-title a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .task-complete-icon, .task-incomplete-icon {
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        border-radius: 50%;
+        background-color: #ccc;
+        margin-right: 5px;
+    }
+
+    .delete-link {
+        color: #ff0000;
+        text-decoration: none;
+    }
+
+    select[name="status"] {
+    padding: 5px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #333;
+    width: 120px;
+    }
+
+    select[name="status"] option {
+        font-size: 14px;
+    }
+
+</style>
+
+
 <div class="header-bar">
     <div>
         <h1>Hello {{request.user|title}}</h1>
@@ -26,35 +82,72 @@
     <a id="add-link" href="{% url 'task-create' %}">&#x2b;</a>
 </div>
 
-<div style="margin: 20px; margin-top: 0">
-    <a style="text-decoration: none; cursor: pointer; " href="{% url 'tasks' %}?order_by=asc">Ascending</a>
-    <a style="text-decoration: none; cursor: pointer; " href="{% url 'tasks' %}?order_by=desc">Descending</a>
-    <a style="text-decoration: none; cursor: pointer; " href="{% url 'tasks' %}?order_by=created">Created Date</a>
-</div>
 
 
-<div class="task-items-wrapper">
-    {% for task in tasks %}
-        <div class="task-wrapper">
-            {% if task.complete %}
-                <div class="task-title">
-                    <div class="task-complete-icon"></div>
-                    <i><s><a href="{% url 'task-update' task.id %}">{{task}}</a></s></i>
-                </div>
-            <a class="delete-link" href="{% url 'task-delete' task.id %}">&#215;</a>
-            {% else %}
-                <div class="task-title">
-                    <div class="task-incomplete-icon">
-                    </div>
-                    <a href="{% url 'task-update' task.id %}">{{task}}</a>
-                </div>
-            <a class="delete-link" href="{% url 'task-delete' task.id %}">&#215;</a>
-            {% endif %}
-        </div>
-    {% empty %}
-        <h3 class="card-body">No items in list</h3>
-    {% endfor %}
-</div>
+<table class="task-table">
+    <thead>
+        <tr>
+             <th>
+                <a href="{% url 'tasks' %}?sort_by=complete&sort_order={{ next_sort_order }}">
+                    Status{% if sort_by == 'complete' %} {% if sort_order == 'asc' %}&uarr;{% else %}&darr;{% endif %}{% endif %}
+                </a>
+            </th>
+            <th>
+                <a href="{% url 'tasks' %}?sort_by=title&sort_order={{ next_sort_order }}">
+                    Title{% if sort_by == 'title' %} {% if sort_order == 'asc' %}&uarr;{% else %}&darr;{% endif %}{% endif %}
+                </a>
+            </th>
+            <th>
+                <a href="{% url 'tasks' %}?sort_by=created&sort_order={{ next_sort_order }}">
+                    Date{% if sort_by == 'created' %} {% if sort_order == 'asc' %}&uarr;{% else %}&darr;{% endif %}{% endif %}
+                </a>
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tasks %}
+            <tr>
+                <td>
+                    <form method="post" action="{% url 'task-status-update' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="task_id" value="{{ task.id }}">
+                        <select name="status" onchange="this.form.submit()">
+                            <option value="in-progress" {% if not task.complete %}selected{% endif %} class="in-progress">In Progress</option>
+                            <option value="done" {% if task.complete %}selected{% endif %} class="done">Done</option>
+                        </select>
+                    </form>
+                </td>
+                <td>
+                    {% if task.complete %}
+                        <s><a href="{% url 'task-update' task.id %}">{{task}}</a></s>
+                    {% else %}
+                        <a href="{% url 'task-update' task.id %}">{{task}}</a>
+                    {% endif %}
+                </td>
+                <td>
+                    {{ task.created|date:"F d, Y" }}
+                </td>
+                <td>
+                    <a class="delete-link" href="{% url 'task-delete' task.id %}">&#215;</a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="3">No items in the list</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+<script>
+    function next_sort_order(sort_by) {
+        const current_sort_order = "{{ sort_order }}";
+        const next_order = current_sort_order === 'asc' ? 'desc' : 'asc';
+        return next_order;
+    }
+</script>
 
 {% endblock content %}
 
