@@ -14,6 +14,7 @@ from django.contrib.auth import login
 from django.shortcuts import get_object_or_404
 from django.views import View
 from .models import Task
+from datetime import datetime
 
 class CustomLoginView(LoginView):
     template_name = 'base/login.html'
@@ -90,11 +91,20 @@ class TaskList(LoginRequiredMixin, ListView):
         context['search_input'] = search_input
 
         return context
+
     def get_queryset(self):
+        queryset = super().get_queryset()
+
         sort_by = self.request.GET.get('sort_by', 'complete')
         sort_order = self.request.GET.get('sort_order', 'asc')
+        status_filter = self.request.GET.get('status', '')  # Added
+        search_input = self.request.GET.get('search-area', '')  # Added
 
-        queryset = super().get_queryset()
+        if status_filter:
+            queryset = queryset.filter(complete=(status_filter == 'done'))
+
+        if search_input:
+            queryset = queryset.filter(title__icontains=search_input)
 
         if sort_by == 'title':
             queryset = queryset.order_by('title' if sort_order == 'asc' else '-title')
@@ -102,6 +112,13 @@ class TaskList(LoginRequiredMixin, ListView):
             queryset = queryset.order_by('created' if sort_order == 'asc' else '-created')
         else:
             queryset = queryset.order_by('complete' if sort_order == 'asc' else '-complete')
+
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        if start_date and end_date:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d")
+            end_date = datetime.strptime(end_date, "%Y-%m-%d")
+            queryset = queryset.filter(created__range=[start_date, end_date])
 
         return queryset
 
