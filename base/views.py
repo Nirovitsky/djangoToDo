@@ -26,7 +26,6 @@ class CustomLoginView(LoginView):
     def get_success_url(self):
         return reverse_lazy('tasks')
 
-
 class RegisterPage(FormView):
     template_name = 'base/register.html'
     form_class = UserCreationForm
@@ -66,7 +65,6 @@ class RegisterPage(FormView):
             return redirect("tasks")
 
         return super().dispatch(request, *args, **kwargs)
-
 
 class TaskList(LoginRequiredMixin, ListView):
     model = Task
@@ -123,8 +121,6 @@ class TaskList(LoginRequiredMixin, ListView):
             queryset = queryset.filter(created__range=[start_date, end_date])
 
         return queryset
-
-
 class TaskDetail(LoginRequiredMixin, DetailView):
     model = Task
     context_object_name = 'task'
@@ -152,12 +148,9 @@ class TaskCreate(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super(TaskCreate, self).form_valid(form)
-
-
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super(TaskCreate, self).form_valid(form)
-
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         current_datetime = timezone.now().strftime('%Y-%m-%dT%H:%M')
@@ -169,7 +162,6 @@ class TaskCreate(LoginRequiredMixin, CreateView):
             }
         )
         return form
-
 class TaskUpdate(LoginRequiredMixin, UpdateView):
     model = Task
     form_class = TaskForm
@@ -186,7 +178,6 @@ class TaskUpdate(LoginRequiredMixin, UpdateView):
             }
         )
         return form
-
 class TaskStatusUpdate(View):
     def post(self, request, *args, **kwargs):
         task_id = request.POST.get('task_id')
@@ -198,7 +189,6 @@ class TaskStatusUpdate(View):
             task.save()
 
         return redirect('tasks')
-
 class DeleteView(LoginRequiredMixin, DeleteView):
     model = Task
     context_object_name = 'task'
