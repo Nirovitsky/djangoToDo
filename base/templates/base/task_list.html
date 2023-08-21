@@ -193,8 +193,9 @@
                     {% endif %}
                 </td>
                 <td>
-                    {{ task.created|date:"F d, Y" }}
+                    {{ task.created|date:"d.m.Y" }}
                 </td>
+                <td>{{ task.due_date|date:"d.m.Y H:i" }}</td>
                 <td>
                     <a class="delete-link" href="{% url 'task-delete' task.id %}">&#215;</a>
                 </td>

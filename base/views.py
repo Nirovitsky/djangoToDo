@@ -16,6 +16,7 @@ from django.views import View
 from .models import Task
 from django import forms
 from datetime import datetime
+from django.utils import timezone
 
 class CustomLoginView(LoginView):
     template_name = 'base/login.html'
@@ -128,6 +129,11 @@ class TaskDetail(LoginRequiredMixin, DetailView):
     model = Task
     context_object_name = 'task'
     template_name = 'base/task.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        task = self.get_object()
+        context['due_date'] = task.due_date
+        return context
 
 class TaskForm(forms.ModelForm):
     class Meta:
@@ -140,7 +146,6 @@ class TaskForm(forms.ModelForm):
 
 class TaskCreate(LoginRequiredMixin, CreateView):
     model = Task
-    # fields = ['title', 'description', 'complete']
     form_class = TaskForm
     success_url = reverse_lazy('tasks')
 
@@ -148,10 +153,39 @@ class TaskCreate(LoginRequiredMixin, CreateView):
         form.instance.user = self.request.user
         return super(TaskCreate, self).form_valid(form)
 
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super(TaskCreate, self).form_valid(form)
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        current_datetime = timezone.now().strftime('%Y-%m-%dT%H:%M')
+        form.fields['due_date'].widget = forms.DateTimeInput(
+            attrs={
+                'type': 'datetime-local',
+                'min': current_datetime,
+                'format': '%Y-%m-%dT%H:%M',
+            }
+        )
+        return form
+
 class TaskUpdate(LoginRequiredMixin, UpdateView):
     model = Task
-    fields = ['title', 'description', 'complete']
+    form_class = TaskForm
     success_url = reverse_lazy('tasks')
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        current_datetime = timezone.now().strftime('%Y-%m-%dT%H:%M')
+        form.fields['due_date'].widget = forms.DateTimeInput(
+            attrs={
+                'type': 'datetime-local',
+                'min': current_datetime,
+                'format': '%Y-%m-%dT%H:%M',
+            }
+        )
+        return form
 
 class TaskStatusUpdate(View):
     def post(self, request, *args, **kwargs):
