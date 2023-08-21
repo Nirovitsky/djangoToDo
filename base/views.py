@@ -14,6 +14,7 @@ from django.contrib.auth import login
 from django.shortcuts import get_object_or_404
 from django.views import View
 from .models import Task
+from django import forms
 from datetime import datetime
 
 class CustomLoginView(LoginView):
@@ -97,8 +98,8 @@ class TaskList(LoginRequiredMixin, ListView):
 
         sort_by = self.request.GET.get('sort_by', 'complete')
         sort_order = self.request.GET.get('sort_order', 'asc')
-        status_filter = self.request.GET.get('status', '')  # Added
-        search_input = self.request.GET.get('search-area', '')  # Added
+        status_filter = self.request.GET.get('status', '')
+        search_input = self.request.GET.get('search-area', '')
 
         if status_filter:
             queryset = queryset.filter(complete=(status_filter == 'done'))
@@ -128,9 +129,19 @@ class TaskDetail(LoginRequiredMixin, DetailView):
     context_object_name = 'task'
     template_name = 'base/task.html'
 
+class TaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['title', 'description', 'complete', 'due_date']
+
+        widgets = {
+            'due_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        }
+
 class TaskCreate(LoginRequiredMixin, CreateView):
     model = Task
-    fields = ['title', 'description', 'complete']
+    # fields = ['title', 'description', 'complete']
+    form_class = TaskForm
     success_url = reverse_lazy('tasks')
 
     def form_valid(self, form):
@@ -148,7 +159,6 @@ class TaskStatusUpdate(View):
         task = get_object_or_404(Task, id=task_id)
         new_status = request.POST.get('status')
 
-        # Assuming 'status' values are either 'in-progress' or 'done'
         if new_status in ('in-progress', 'done'):
             task.complete = (new_status == 'done')
             task.save()

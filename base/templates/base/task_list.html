@@ -164,6 +164,11 @@
                     Date{% if sort_by == 'created' %} {% if sort_order == 'asc' %}&uarr;{% else %}&darr;{% endif %}{% endif %}
                 </a>
             </th>
+            <th>
+                <a href="{% url 'tasks' %}?sort_by=due_date&sort_order={{ next_sort_order }}">
+                    Due Date{% if sort_by == 'due_date' %} {% if sort_order == 'asc' %}&uarr;{% else %}&darr;{% endif %}{% endif %}
+                </a>
+</th>
             <th></th>
         </tr>
     </thead>

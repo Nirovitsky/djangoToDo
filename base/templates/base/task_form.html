@@ -13,6 +13,8 @@
     <label>{{ form.description.label }}</label>
     {{ form.description }}
 
+        <p>Due Date: {{ task.due_date|date:"F d, Y H:i" }}</p>
+
     <input class="button" type="submit" value="Submit">
 </form>
 </div>
