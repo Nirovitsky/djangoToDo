@@ -110,8 +110,10 @@ class TaskList(LoginRequiredMixin, ListView):
             queryset = queryset.order_by('title' if sort_order == 'asc' else '-title')
         elif sort_by == 'created':
             queryset = queryset.order_by('created' if sort_order == 'asc' else '-created')
-        else:
+        elif sort_by == 'complete':
             queryset = queryset.order_by('complete' if sort_order == 'asc' else '-complete')
+        else:
+            queryset = queryset.order_by('due_date' if sort_order == 'asc' else '-due_date')
 
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
